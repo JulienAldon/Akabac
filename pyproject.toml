@@ -1,0 +1,11 @@
+[project]
+name = "bamboo-auto-clocker"
+description = "Quick and dirty CLI script to automate BambooHR clocking task."
+version = "0.1.0"
+authors = [
+    { name = "Julien Aldon", email = "julien.aldon@epitech.eu" }
+]
+dependencies = [
+    'browser-cookie3',
+    'requests'
+]
