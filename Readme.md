@@ -2,11 +2,19 @@
 Quick and dirty CLI script to automate BambooHR clocking task.
 
 # How to use it ?
-Step 01: Connect to BambooHR interface (to set your cookie).
+**Step 01**: Connect to BambooHR interface (to set your cookie).
 
-Step 02: Clock for the whole month using the following command.
+**Step 02**: Install hatch on your system
+
+**Step 03**: Activate the environment
+
+```sh
+hatch shell
 ```
-python bamboo_auto_clocker --browser <your-browser>
+
+**Step 04**: Clock for the whole month using the following command.
+```sh
+python bamboo_auto_clocker.py --browser <your-browser>
 ```
 `<your-browser>` being the browser you used at `Step 01`
 
