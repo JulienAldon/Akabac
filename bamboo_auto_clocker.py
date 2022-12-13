@@ -7,19 +7,19 @@ from requests.utils import dict_from_cookiejar
 import re
 import argparse
 
-def clock_day(date: str, header_cookie: str, csrf_token: str, time_ranges):
+def clock_day(date: str, header_cookie: str, csrf_token: str, time_ranges, employeeId):
     """
     date format YYYY-MM-DD
     """
     resp = requests.post('https://epitech.bamboohr.com/timesheet/clock/entries',
-            json=json.loads('{"entries":[{"id":null,"trackingId":1,"employeeId":1295,"date":"' + date + '","start":"' + time_ranges[0][0] + '","end":"' + time_ranges[0][1] + '","note":"","projectId":null,"taskId":null},{"id":null,"trackingId":2,"employeeId":1295,"date":"' + date +'","start":"' + time_ranges[1][0] + '","end":"' + time_ranges[1][1] + '","projectId":null,"taskId":null}]}'),
+            json=json.loads('{"entries":[{"id":null,"trackingId":1,"employeeId":'+employeeId+',"date":"' + date + '","start":"' + time_ranges[0][0] + '","end":"' + time_ranges[0][1] + '","note":"","projectId":null,"taskId":null},{"id":null,"trackingId":2,"employeeId":'+employeeId+',"date":"' + date +'","start":"' + time_ranges[1][0] + '","end":"' + time_ranges[1][1] + '","projectId":null,"taskId":null}]}'),
             headers={
                 'Content-Type': 'application/json;charset=utf-8', 
                 'X-CSRF-TOKEN': csrf_token,
                 'Cookie': header_cookie
             }
         )
-    print(resp)
+    print(resp.text)
 
 def generate_date_range(month: str):
     first_day = datetime.datetime.strptime(f'2022-{month}-01', '%Y-%m-%d')
@@ -72,10 +72,16 @@ if __name__ == "__main__":
     for a in cj_dict.items():
         cj_string += f'{a[0]}={a[1]}; '
 
-    resp = requests.get('https://epitech.bamboohr.com/employees/timesheet/?id=1295&et_id=23529', headers={
+    resp = requests.get('https://epitech.bamboohr.com/home', headers={
+        'Cookie': cj_string
+    })
+
+    e_id = re.findall(r'"employeeId":"(.*?)",', resp.text)[0]
+
+    resp = requests.get(f'https://epitech.bamboohr.com/employees/timesheet/?id={e_id}', headers={
         'Cookie': cj_string
     })
 
     csrf_token = re.findall(r'var CSRF_TOKEN = "(.*?)"', resp.text)[0]
     today = datetime.datetime.today()
-    clock_month(today.strftime("%m"), cj_string, csrf_token, time_ranges)
+    clock_month(today.strftime("%m"), cj_string, csrf_token, time_ranges, e_id)
