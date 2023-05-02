@@ -19,7 +19,7 @@ def clock_day(date: str, header_cookie: str, csrf_token: str, time_ranges, emplo
                 'Cookie': header_cookie
             }
         )
-    print(resp.text)
+    print(f'Successfully clocked in for {date}.')
 
 def generate_date_range(month: str):
     first_day = datetime.datetime.strptime(f'2023-{month}-01', '%Y-%m-%d')
@@ -32,10 +32,10 @@ def generate_date_range(month: str):
         current_date += delta
     return date_range
 
-def clock_month(month: str, cookie_jar: str, csrf_token: str, time_ranges):
+def clock_month(month: str, cookie_jar: str, csrf_token: str, time_ranges, e_id):
     dates = generate_date_range(month)
     for date in dates:
-        clock_day(date, cookie_jar, csrf_token, time_ranges)
+        clock_day(date, cookie_jar, csrf_token, time_ranges, e_id)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Clock for the current month (use it at the end of the month)')
@@ -77,10 +77,18 @@ if __name__ == "__main__":
     })
 
     e_id = re.findall(r'"employeeId":"(.*?)",', resp.text)[0]
+    if not e_id:
+        print('Error : could not get employee id, are you logged on the correct browser ?')
+        sys.exit(84)
+
     resp = requests.get(f'https://epitech.bamboohr.com/employees/timesheet/?id={e_id}', headers={
         'Cookie': cj_string
     })
 
     csrf_token = re.findall(r'var CSRF_TOKEN = "(.*?)"', resp.text)[0]
+    if not csrf_token:
+        print('Error : could not retreive csrf_token, are you logged on the correct browser ?')
+        sys.exit(84)
+
     today = datetime.datetime.today()
     clock_month(today.strftime("%m"), cj_string, csrf_token, time_ranges, e_id)
