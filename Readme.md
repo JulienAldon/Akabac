@@ -1,4 +1,4 @@
-# Bamboo-auto-clocker
+# Akabac (Assistance Kit Advertizing Bamboo Auto Clocker)
 Quick and dirty CLI script to automate BambooHR clocking task.
 
 # How to use it ?
