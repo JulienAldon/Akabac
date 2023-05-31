@@ -32,17 +32,24 @@ def generate_date_range(month: str):
         current_date += delta
     return date_range
 
-def clock_month(month: str, cookie_jar: str, csrf_token: str, time_ranges, e_id):
+def clock_month(month: str, cookie_jar: str, csrf_token: str, time_ranges, e_id, except_days):
     dates = generate_date_range(month)
+
+    for e in except_days:
+        if e in dates:
+            dates.remove(e)
+
     for date in dates:
         clock_day(date, cookie_jar, csrf_token, time_ranges, e_id)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Clock for the current month (use it at the end of the month)')
     parser.add_argument('--browser', metavar='browser', type=str, nargs=1,
-                    help='Browser used to get the cookie jar', required=True)
+                    help='Browser used to get the cookie jar.', required=True)
     parser.add_argument('--time-range', type=str, nargs=2, 
-                    help='Time range of the clock in', required=False)
+                    help='Time range of the clock in.', required=False)
+    parser.add_argument('--except-days', type=str, nargs='+',
+                    help='days to except in the registration. (format YYYY-MM-DD)', required=False)
     args = parser.parse_args()
     if args:
         if args.browser[0] == 'firefox':
@@ -50,14 +57,12 @@ if __name__ == "__main__":
         elif args.browser[0] == 'chrome':
             cj = browser_cookie3.chrome(domain_name='bamboohr.com')
         else:
-            print('Browser not supported')
-            sys.exit(84)
+            raise Exception('This browser is not supported, please use chrome or firefox.')
     else: 
         cj = browser_cookie3.firefox(domain_name='bamboohr.com')
 
     if not cj:
-        print('Error could not get cookie jar')
-        sys.exit(84)
+        raise Exception("CookieJar not found.")
     
     if args.time_range:
         time_ranges = [
@@ -76,19 +81,18 @@ if __name__ == "__main__":
         'Cookie': cj_string
     })
 
-    e_id = re.findall(r'"employeeId":"(.*?)",', resp.text)[0]
-    if not e_id:
-        print('Error : could not get employee id, are you logged on the correct browser ?')
-        sys.exit(84)
-
+    e_id = re.findall(r'"employeeId":"(.*?)",', resp.text)
+    if not e_id or len(e_id) < 1:
+        raise Exception("Cannot find employee id, you must login on bambooHR on your desired browser.")
+    e_id = e_id[0]
+    
     resp = requests.get(f'https://epitech.bamboohr.com/employees/timesheet/?id={e_id}', headers={
         'Cookie': cj_string
     })
 
     csrf_token = re.findall(r'var CSRF_TOKEN = "(.*?)"', resp.text)[0]
     if not csrf_token:
-        print('Error : could not retreive csrf_token, are you logged on the correct browser ?')
-        sys.exit(84)
+        raise Exception('Error : Cannot find csrf_token, you must login on bambooHR on your desired browser.')
 
     today = datetime.datetime.today()
-    clock_month(today.strftime("%m"), cj_string, csrf_token, time_ranges, e_id)
+    clock_month(today.strftime("%m"), cj_string, csrf_token, time_ranges, e_id, args.except_days)
