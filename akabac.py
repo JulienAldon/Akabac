@@ -35,10 +35,11 @@ def generate_date_range(month: str):
 def clock_month(month: str, cookie_jar: str, csrf_token: str, time_ranges, e_id, except_days):
     dates = generate_date_range(month)
 
-    for e in except_days:
-        if e in dates:
-            dates.remove(e)
-
+    if except_days:
+        for e in except_days:
+            if e in dates:
+                dates.remove(e)
+    
     for date in dates:
         clock_day(date, cookie_jar, csrf_token, time_ranges, e_id)
 
